@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase FCM Token Demo</title>
+</head>
+<body>
+  <h1>Get Firebase Messaging Token</h1>
+  <button id="get-token">Get Token</button>
+  <p id="output"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    document.getElementById("get-token").addEventListener("click", async () => {
+      const output = document.getElementById("output");
+      try {
+        const permission = await Notification.requestPermission();
+
+        if (permission === "granted") {
+          console.log("Notification permission granted.");
+          const vapidKey = "YOUR_PUBLIC_VAPID_KEY";
+          const token = await getToken(messaging, { vapidKey });
+
+          if (token) {
+            output.textContent = `Token: ${token}`;
+            console.log("Device token:", token);
+          } else {
+            output.textContent = "No registration token available.";
+          }
+        } else {
+          output.textContent = "Permission denied.";
+        }
+      } catch (error) {
+        output.textContent = "Error getting token.";
+        console.error("Error:", error);
+      }
+    });
+
+    // Listen for foreground messages
+    onMessage(messaging, (payload) => {
+      console.log("Message received: ", payload);
+      alert(`New Notification: ${payload.notification.title} - ${payload.notification.body}`);
+    });
+  </script>
+</body>
+</html>
